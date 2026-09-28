@@ -15,23 +15,6 @@
 
 Сборка и установка зависимостей не нужны. Откройте `index.html` в современном браузере.
 
-## Публикация на GitHub Pages
-
-1. Создайте пустой репозиторий на GitHub.
-2. В терминале из папки проекта инициализируйте Git, добавьте файлы и отправьте их в новый репозиторий. Замените адрес на URL своего репозитория:
-
-   ```sh
-   git init -b main
-   git add index.html README.md .gitignore
-   git commit -m "Prepare project for GitHub Pages"
-   git remote add origin https://github.com/USERNAME/REPOSITORY.git
-   git push -u origin main
-   ```
-
-3. Откройте настройки репозитория на GitHub: **Settings → Pages**.
-4. В разделе сборки выберите **Deploy from a branch**, ветку `main` и папку `/(root)`, затем сохраните настройки.
-5. После завершения публикации GitHub Pages покажет адрес сайта в разделе **Settings → Pages**.
-
 ## Расчёт
 
 Средневзвешенная оценка = сумма `(оценка × вес)` / сумма весов.
