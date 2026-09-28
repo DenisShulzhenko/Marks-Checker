@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f5ef">
+  <title>Средневзвешенная оценка</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f3f5ef;
+      --surface: #fffefa;
+      --ink: #183b35;
+      --muted: #687873;
+      --line: #dce4dc;
+      --accent: #d45b3c;
+      --accent-soft: #f8e8df;
+      --green: #28715d;
+      --danger: #b33d35;
+      --serif: Georgia, "Times New Roman", serif;
+      --sans: "Segoe UI", Tahoma, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background-color: var(--paper);
+      background-image: radial-gradient(#cbd6ca 0.7px, transparent 0.7px);
+      background-size: 18px 18px;
+      color: var(--ink);
+      font-family: var(--sans);
+    }
+
+    button, input { font: inherit; }
+
+    .page {
+      width: min(1060px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 34px 0 38px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 19px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 28px;
+      aspect-ratio: 1;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--green);
+      color: white;
+      font-family: var(--serif);
+      font-size: 17px;
+    }
+
+    .top-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    main { padding-top: 42px; }
+
+    .intro { margin-bottom: 27px; }
+
+    .eyebrow {
+      margin: 0 0 9px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(34px, 6vw, 52px);
+      font-weight: 400;
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      margin: 11px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(270px, 0.8fr);
+      align-items: start;
+      gap: 42px;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--ink);
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .add-button {
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 0 6px 8px;
+      border: 0;
+      background: transparent;
+      color: var(--green);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .add-button:hover { color: var(--accent); }
+    .add-button:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+
+    .grades-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .grades-table col:nth-child(1) { width: 46%; }
+    .grades-table col:nth-child(2) { width: 28%; }
+    .grades-table col:nth-child(3) { width: 12%; }
+    .grades-table col:nth-child(4) { width: 14%; }
+
+    .grades-table th {
+      padding: 9px 6px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .grades-table td {
+      height: 56px;
+      padding: 7px 4px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .grade-control {
+      width: 100%;
+      height: 37px;
+      min-width: 0;
+      padding: 0 8px;
+      border: 1px solid #cbd6ce;
+      border-radius: 4px;
+      outline: none;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 12px;
+      transition: border-color 140ms ease, box-shadow 140ms ease;
+    }
+
+    .grade-control::placeholder { color: #a1ada5; }
+
+    .grade-control:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px #28715d20;
+    }
+
+    .grade-control[aria-invalid="true"] { border-color: var(--danger); }
+
+    .weight-cell {
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .remove-button {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      margin: 0 auto;
+      place-items: center;
+      border: 0;
+      border-radius: 20px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .remove-button:hover { background: var(--accent-soft); color: var(--accent); }
+    .remove-button:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+
+    .empty-row td {
+      height: 48px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      clip-path: inset(50%);
+    }
+
+    .input-help {
+      min-height: 35px;
+      padding-top: 11px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .input-help.error { color: var(--danger); }
+
+    .result-panel {
+      position: sticky;
+      top: 22px;
+      overflow: hidden;
+      border: 1px solid #d7e1d7;
+      border-radius: 5px;
+      background: var(--surface);
+    }
+
+    .result-top {
+      padding: 20px 21px 22px;
+      background: #e8efe7;
+    }
+
+    .result-label {
+      margin: 0;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    .result-value {
+      min-height: 73px;
+      margin: 9px 0 0;
+      font-family: var(--serif);
+      font-size: 62px;
+      line-height: 1.12;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result-caption {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .result-details { padding: 5px 21px 17px; }
+
+    .detail-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+    }
+
+    .detail-line:last-child { border-bottom: 0; }
+    .detail-line span:first-child { color: var(--muted); }
+    .detail-line strong { font-variant-numeric: tabular-nums; }
+
+    .formula {
+      margin: 2px 0 16px;
+      padding: 13px 14px;
+      border-left: 2px solid var(--accent);
+      background: #fcf4ef;
+      color: #66574f;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .clear-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 0;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .clear-button:hover { color: var(--accent); }
+    .clear-button:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+
+    footer {
+      margin-top: 35px;
+      padding-top: 15px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 720px) {
+      .page { width: min(100% - 32px, 520px); padding-top: 22px; }
+      main { padding-top: 31px; }
+      .workspace { grid-template-columns: 1fr; gap: 20px; }
+      .result-panel { position: static; grid-row: 1; }
+      .result-top { padding: 17px 19px; }
+      .result-value { min-height: 61px; font-size: 52px; }
+      .result-details { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+      .formula { margin-bottom: 13px; }
+    }
+
+    @media (max-width: 430px) {
+      .top-note { max-width: 130px; text-align: right; }
+      .grades-table col:nth-child(1) { width: 48%; }
+      .grades-table col:nth-child(2) { width: 30%; }
+      .grades-table col:nth-child(3) { width: 10%; }
+      .grades-table col:nth-child(4) { width: 12%; }
+      .grades-table th { padding-right: 3px; padding-left: 3px; font-size: 9px; }
+      .grades-table td { padding-right: 3px; padding-left: 3px; }
+      .grade-control { padding-right: 5px; padding-left: 5px; font-size: 11px; }
+      .remove-button { width: 26px; height: 30px; }
+      .add-button { gap: 4px; font-size: 11px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topline">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">Σ</span><span>Дневник оценок</span></div>
+      <span class="top-note">Расчёт с учётом веса работ</span>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Калькулятор</p>
+        <h1 id="page-title">Средний балл</h1>
+        <p class="subtitle">Введите оценки по типам работ. Результат обновится автоматически.</p>
+      </section>
+
+      <div class="workspace">
+        <section class="grade-entry" aria-labelledby="grades-title">
+          <div class="section-heading">
+            <h2 id="grades-title">Оценки</h2>
+            <button class="add-button" id="add-grade" type="button" title="Добавить оценку">
+              <span aria-hidden="true">+</span> Добавить
+            </button>
+          </div>
+          <table class="grades-table">
+            <colgroup><col><col><col><col></colgroup>
+            <thead>
+              <tr><th scope="col">Тип работы</th><th scope="col">Оценка</th><th scope="col">Вес</th><th scope="col"><span class="sr-only">Удалить</span></th></tr>
+            </thead>
+            <tbody id="grade-rows"></tbody>
+          </table>
+          <div class="input-help" id="input-help" aria-live="polite">Оценки разделяйте запятыми. Сдвоенную оценку вводите через /.</div>
+          <button class="clear-button" id="clear" type="button" title="Очистить все оценки">
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none">
+              <path d="M3 4.5h10M6 4.5V3h4v1.5m-5.5 0 .6 8h5.8l.6-8M6.5 7v3.5m3-3.5v3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Очистить оценки
+          </button>
+        </section>
+
+        <template id="grade-row-template">
+          <tr class="grade-row">
+            <td>
+              <label class="sr-only">Тип работы</label>
+              <select class="grade-control category-select" aria-label="Тип работы"></select>
+            </td>
+            <td><input class="grade-control grade-input" type="text" inputmode="text" autocomplete="off" placeholder="Например, 5 или 4/3" aria-label="Оценка" aria-describedby="input-help"></td>
+            <td class="weight-cell"></td>
+            <td><button class="remove-button" type="button" title="Удалить строку" aria-label="Удалить строку">×</button></td>
+          </tr>
+        </template>
+
+        <aside class="result-panel" aria-labelledby="result-title">
+          <div class="result-top">
+            <p class="result-label" id="result-title">Средневзвешенная</p>
+            <p class="result-value" id="result" aria-live="polite">—</p>
+            <p class="result-caption" id="result-caption">Введите оценки для расчёта</p>
+          </div>
+          <div class="result-details">
+            <div class="detail-line"><span>Учтено оценок</span><strong id="grade-count">0</strong></div>
+            <div class="detail-line"><span>Сумма весов</span><strong id="weight-sum">0</strong></div>
+            <div class="detail-line"><span>Баллы с весом</span><strong id="weighted-total">0</strong></div>
+          </div>
+        </aside>
+      </div>
+
+      <footer>
+        <div class="formula">Средневзвешенная = сумма (оценка × вес) ÷ сумма весов. 4/3 считается как 3,5 и получает один вес.</div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    const categories = [
+      { id: "lesson", name: "Ответ на уроке", weight: 2 },
+      { id: "homework", name: "Домашнее задание", weight: 2 },
+      { id: "test", name: "Контрольная работа", weight: 3 },
+      { id: "independent", name: "Самостоятельная работа", weight: 1 },
+      { id: "lab", name: "Лабораторная работа", weight: 1 },
+      { id: "final-test", name: "Итоговая контрольная работа", weight: 5 }
+    ];
+    const gradeRows = document.getElementById("grade-rows");
+    const rowTemplate = document.getElementById("grade-row-template");
+    const result = document.getElementById("result");
+    const resultCaption = document.getElementById("result-caption");
+    const gradeCount = document.getElementById("grade-count");
+    const weightSum = document.getElementById("weight-sum");
+    const weightedTotal = document.getElementById("weighted-total");
+    const inputHelp = document.getElementById("input-help");
+    const numberFormat = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 2 });
+
+    function parseGrade(value) {
+      const normalized = value.trim().replace(/\s+/g, "");
+      if (!normalized) return null;
+      const parts = normalized.split("/");
+      if (parts.length > 2 || parts.some((part) => !/^\d+(?:[.,]\d+)?$/.test(part))) return null;
+      const grades = parts.map((part) => Number(part.replace(",", ".")));
+      if (grades.some((grade) => !Number.isFinite(grade))) return null;
+      return grades.reduce((sum, grade) => sum + grade, 0) / grades.length;
+    }
+
+    function addGradeRow(categoryId = "lesson") {
+      const row = rowTemplate.content.firstElementChild.cloneNode(true);
+      const categorySelect = row.querySelector(".category-select");
+      const gradeInput = row.querySelector(".grade-input");
+
+      categories.forEach(({ id, name }) => {
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = name;
+        categorySelect.append(option);
+      });
+      categorySelect.value = categoryId;
+      categorySelect.addEventListener("change", () => {
+        updateRowWeight(row);
+        updateResult();
+      });
+      gradeInput.addEventListener("input", updateResult);
+      row.querySelector(".remove-button").addEventListener("click", () => {
+        row.remove();
+        updateResult();
+        document.getElementById("add-grade").focus();
+      });
+
+      gradeRows.append(row);
+      updateRowWeight(row);
+      updateResult();
+      gradeInput.focus();
+    }
+
+    function updateRowWeight(row) {
+      const category = categories.find(({ id }) => id === row.querySelector(".category-select").value);
+      row.querySelector(".weight-cell").textContent = "×" + category.weight;
+    }
+
+    function updateResult() {
+      let weightedSum = 0;
+      let totalWeight = 0;
+      let totalGrades = 0;
+      let invalid = false;
+
+      gradeRows.querySelectorAll(".grade-row").forEach((row) => {
+        const category = categories.find(({ id }) => id === row.querySelector(".category-select").value);
+        const input = row.querySelector(".grade-input");
+        const grade = parseGrade(input.value);
+        const hasInvalid = input.value.trim() !== "" && grade === null;
+        input.setAttribute("aria-invalid", String(hasInvalid));
+        if (hasInvalid) {
+          invalid = true;
+          return;
+        }
+        if (grade !== null) {
+          weightedSum += grade * category.weight;
+          totalWeight += category.weight;
+          totalGrades += 1;
+        }
+      });
+
+      gradeCount.textContent = String(totalGrades);
+      weightSum.textContent = String(totalWeight);
+      weightedTotal.textContent = numberFormat.format(weightedSum);
+      inputHelp.classList.toggle("error", invalid);
+
+      if (invalid) {
+        inputHelp.textContent = "Проверьте формат: например, 5, 4/3 или 3,5.";
+        result.textContent = "!";
+        resultCaption.textContent = "Исправьте некорректную оценку";
+      } else if (totalWeight === 0) {
+        inputHelp.textContent = "Одна оценка в каждой строке. Сдвоенную вводите через /, дробную часть можно указать через запятую.";
+        result.textContent = "—";
+        resultCaption.textContent = "Введите оценки для расчёта";
+      } else {
+        inputHelp.textContent = "Одна оценка в каждой строке. Сдвоенную вводите через /, дробную часть можно указать через запятую.";
+        result.textContent = numberFormat.format(weightedSum / totalWeight);
+        resultCaption.textContent = "На основе " + totalGrades + (totalGrades === 1 ? " оценки" : " оценок");
+      }
+    }
+
+    document.getElementById("add-grade").addEventListener("click", () => addGradeRow());
+    document.getElementById("clear").addEventListener("click", () => {
+      gradeRows.querySelectorAll(".grade-input").forEach((input) => {
+        input.value = "";
+        input.setAttribute("aria-invalid", "false");
+      });
+      updateResult();
+      gradeRows.querySelector(".grade-input")?.focus();
+    });
+
+    addGradeRow();
+  </script>
+</body>
+</html>
